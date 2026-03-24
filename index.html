@@ -30,6 +30,11 @@
       margin-bottom: 10px;
     }
 
+    p {
+      color: #555;
+      font-size: 16px;
+    }
+
     .count {
       font-size: 60px;
       color: #2c3e50;
@@ -96,6 +101,10 @@
 
         if (count === 108) {
           document.getElementById("message").innerText = "🎉 1 Round Completed! Hare Krishna!";
+
+          if (navigator.vibrate) {
+            navigator.vibrate([200, 100, 200, 100, 400]);
+          }
         }
       }
     }
