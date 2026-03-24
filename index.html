@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Japa Counter</title>
+  <title>Japa Counter - 16 Rounds</title>
 
   <style>
     body {
@@ -13,7 +13,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
     }
 
     .container {
@@ -22,7 +22,7 @@
       border-radius: 20px;
       box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
       text-align: center;
-      width: 350px;
+      width: 400px;
     }
 
     h1 {
@@ -35,17 +35,52 @@
       font-size: 16px;
     }
 
-    .count {
-      font-size: 60px;
+    .main-count {
+      font-size: 55px;
       color: #2c3e50;
+      font-weight: bold;
+      margin: 20px 0 10px;
+    }
+
+    .sub-info {
+      display: flex;
+      justify-content: space-between;
       margin: 20px 0;
+      gap: 10px;
+    }
+
+    .info-box {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 12px;
+      flex: 1;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .info-box h3 {
+      margin: 0;
+      font-size: 16px;
+      color: #7f8c8d;
+    }
+
+    .info-box .value {
+      margin-top: 8px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    .target {
+      margin-top: 10px;
+      font-size: 18px;
+      color: #8e44ad;
       font-weight: bold;
     }
 
     .message {
       font-size: 18px;
       color: green;
-      margin-bottom: 20px;
+      margin: 20px 0;
       min-height: 25px;
     }
 
@@ -81,37 +116,77 @@
 
   <div class="container">
     <h1>🪔 Japa Counter</h1>
-    <p>Count your chanting up to 108 beads</p>
+    <p>1 Round = 108 Beads | Daily Goal = 16 Rounds</p>
 
-    <div class="count" id="countDisplay">0</div>
+    <div class="main-count" id="beadCount">0 / 108</div>
+
+    <div class="sub-info">
+      <div class="info-box">
+        <h3>Total Beads</h3>
+        <div class="value" id="totalBeads">0</div>
+      </div>
+
+      <div class="info-box">
+        <h3>Rounds</h3>
+        <div class="value" id="roundCount">0</div>
+      </div>
+    </div>
+
+    <div class="target" id="targetStatus">Target: 16 Rounds Remaining</div>
 
     <div class="message" id="message"></div>
 
     <button class="chant-btn" onclick="increaseCount()">Chant +1</button>
-    <button class="reset-btn" onclick="resetCount()">Reset</button>
+    <button class="reset-btn" onclick="resetCount()">Reset All</button>
   </div>
 
   <script>
-    let count = 0;
+    let currentBeads = 0;
+    let totalBeads = 0;
+    let rounds = 0;
+    const targetRounds = 16;
 
     function increaseCount() {
-      if (count < 108) {
-        count++;
-        document.getElementById("countDisplay").innerText = count;
+      if (rounds < targetRounds) {
+        currentBeads++;
+        totalBeads++;
 
-        if (count === 108) {
-          document.getElementById("message").innerText = "🎉 1 Round Completed! Hare Krishna!";
+        document.getElementById("beadCount").innerText = currentBeads + " / 108";
+        document.getElementById("totalBeads").innerText = totalBeads;
+
+        if (currentBeads === 108) {
+          rounds++;
+          currentBeads = 0;
+
+          document.getElementById("roundCount").innerText = rounds;
+          document.getElementById("beadCount").innerText = currentBeads + " / 108";
+          document.getElementById("message").innerText = "🎉 Round " + rounds + " completed! Hare Krishna!";
 
           if (navigator.vibrate) {
             navigator.vibrate([200, 100, 200, 100, 400]);
+          }
+
+          let remainingRounds = targetRounds - rounds;
+
+          if (remainingRounds > 0) {
+            document.getElementById("targetStatus").innerText = "Target: " + remainingRounds + " Rounds Remaining";
+          } else {
+            document.getElementById("targetStatus").innerText = "🎉 16 Rounds Completed Today! Haribol!";
+            document.getElementById("message").innerText = "🌸 All 16 rounds completed! Wonderful seva!";
           }
         }
       }
     }
 
     function resetCount() {
-      count = 0;
-      document.getElementById("countDisplay").innerText = count;
+      currentBeads = 0;
+      totalBeads = 0;
+      rounds = 0;
+
+      document.getElementById("beadCount").innerText = "0 / 108";
+      document.getElementById("totalBeads").innerText = "0";
+      document.getElementById("roundCount").innerText = "0";
+      document.getElementById("targetStatus").innerText = "Target: 16 Rounds Remaining";
       document.getElementById("message").innerText = "";
     }
   </script>
