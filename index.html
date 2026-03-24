@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Japa Counter</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #fff8e1, #ffe0b2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background-color: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      width: 350px;
+    }
+
+    h1 {
+      color: #d35400;
+      margin-bottom: 10px;
+    }
+
+    .count {
+      font-size: 60px;
+      color: #2c3e50;
+      margin: 20px 0;
+      font-weight: bold;
+    }
+
+    .message {
+      font-size: 18px;
+      color: green;
+      margin-bottom: 20px;
+      min-height: 25px;
+    }
+
+    button {
+      padding: 12px 20px;
+      margin: 8px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .chant-btn {
+      background-color: #27ae60;
+      color: white;
+    }
+
+    .chant-btn:hover {
+      background-color: #219150;
+    }
+
+    .reset-btn {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    .reset-btn:hover {
+      background-color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>🪔 Japa Counter</h1>
+    <p>Count your chanting up to 108 beads</p>
+
+    <div class="count" id="countDisplay">0</div>
+
+    <div class="message" id="message"></div>
+
+    <button class="chant-btn" onclick="increaseCount()">Chant +1</button>
+    <button class="reset-btn" onclick="resetCount()">Reset</button>
+  </div>
+
+  <script>
+    let count = 0;
+
+    function increaseCount() {
+      if (count < 108) {
+        count++;
+        document.getElementById("countDisplay").innerText = count;
+
+        if (count === 108) {
+          document.getElementById("message").innerText = "🎉 1 Round Completed! Hare Krishna!";
+        }
+      }
+    }
+
+    function resetCount() {
+      count = 0;
+      document.getElementById("countDisplay").innerText = count;
+      document.getElementById("message").innerText = "";
+    }
+  </script>
+
+</body>
+</html>
