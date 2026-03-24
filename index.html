@@ -14,6 +14,8 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
     }
 
     .container {
@@ -22,7 +24,8 @@
       border-radius: 20px;
       box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
       text-align: center;
-      width: 400px;
+      width: 420px;
+      max-width: 100%;
     }
 
     h1 {
@@ -84,6 +87,45 @@
       min-height: 25px;
     }
 
+    .voice-section {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #fdfaf2;
+      border-radius: 12px;
+      border: 1px solid #f0d9a7;
+    }
+
+    .voice-status {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #2980b9;
+    }
+
+    .heard-box {
+      margin-top: 10px;
+      text-align: left;
+    }
+
+    .heard-text {
+      margin-top: 5px;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      min-height: 35px;
+      color: #444;
+      word-wrap: break-word;
+    }
+
+    .mantra-box {
+      margin-top: 15px;
+      background-color: #fafafa;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 14px;
+      color: #555;
+      line-height: 1.6;
+    }
+
     button {
       padding: 12px 20px;
       margin: 8px;
@@ -109,6 +151,24 @@
 
     .reset-btn:hover {
       background-color: #c0392b;
+    }
+
+    .voice-btn {
+      background-color: #3498db;
+      color: white;
+    }
+
+    .voice-btn:hover {
+      background-color: #2c80b4;
+    }
+
+    .stop-btn {
+      background-color: #f39c12;
+      color: white;
+    }
+
+    .stop-btn:hover {
+      background-color: #d68910;
     }
   </style>
 </head>
@@ -136,16 +196,45 @@
 
     <div class="message" id="message"></div>
 
+    <!-- Existing buttons (same logic) -->
     <button class="chant-btn" onclick="increaseCount()">Chant +1</button>
     <button class="reset-btn" onclick="resetCount()">Reset All</button>
+
+    <!-- NEW: Voice section added -->
+    <div class="voice-section">
+      <button class="voice-btn" onclick="startVoice()">🎤 Start Voice</button>
+      <button class="stop-btn" onclick="stopVoice()">⏹ Stop Voice</button>
+
+      <div class="voice-status">
+        Voice Status: <span id="voiceStatus">Not Listening</span>
+      </div>
+
+      <div class="heard-box">
+        <strong>Last Heard:</strong>
+        <div class="heard-text" id="heardText">Nothing heard yet...</div>
+      </div>
+
+      <div class="mantra-box">
+        <strong>Maha-mantra:</strong><br>
+        Hare Krishna Hare Krishna Krishna Krishna Hare Hare<br>
+        Hare Rama Hare Rama Rama Rama Hare Hare
+      </div>
+    </div>
   </div>
 
   <script>
+    // ===== EXISTING VARIABLES (same logic) =====
     let currentBeads = 0;
     let totalBeads = 0;
     let rounds = 0;
     const targetRounds = 16;
 
+    // ===== NEW VARIABLES (voice feature only) =====
+    let recognition;
+    let isListening = false;
+    let lastVoiceCountTime = 0;
+
+    // ===== EXISTING FUNCTION (same logic) =====
     function increaseCount() {
       if (rounds < targetRounds) {
         currentBeads++;
@@ -178,6 +267,7 @@
       }
     }
 
+    // ===== EXISTING FUNCTION (same logic) =====
     function resetCount() {
       currentBeads = 0;
       totalBeads = 0;
@@ -188,6 +278,83 @@
       document.getElementById("roundCount").innerText = "0";
       document.getElementById("targetStatus").innerText = "Target: 16 Rounds Remaining";
       document.getElementById("message").innerText = "";
+      document.getElementById("voiceStatus").innerText = "Not Listening";
+      document.getElementById("heardText").innerText = "Nothing heard yet...";
+    }
+
+    // ===== NEW FUNCTION: checks if full maha-mantra is heard =====
+    function isFullMahaMantra(text) {
+      text = text.toLowerCase().trim();
+
+      let hareCount = (text.match(/hare/g) || []).length;
+      let krishnaCount = (text.match(/krishna/g) || []).length;
+      let ramaCount = (text.match(/rama/g) || []).length;
+
+      let hasEnoughWords = hareCount >= 4 && krishnaCount >= 4 && ramaCount >= 4;
+      let hasKrishnaPart = text.includes("hare krishna");
+      let hasRamaPart = text.includes("hare rama");
+
+      return hasEnoughWords && hasKrishnaPart && hasRamaPart;
+    }
+
+    // ===== NEW FUNCTION: start voice listening =====
+    function startVoice() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        alert("Speech recognition is not supported in this browser. Please use Chrome.");
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = false;
+      recognition.lang = "en-IN";
+
+      recognition.onstart = function () {
+        isListening = true;
+        document.getElementById("voiceStatus").innerText = "Listening... 🎤";
+      };
+
+      recognition.onresult = function (event) {
+        let transcript = event.results[event.results.length - 1][0].transcript.trim();
+        document.getElementById("heardText").innerText = transcript;
+
+        let currentTime = Date.now();
+
+        if (isFullMahaMantra(transcript)) {
+          if (currentTime - lastVoiceCountTime > 3000) {
+            increaseCount(); // Uses your SAME old counting logic
+            lastVoiceCountTime = currentTime;
+            document.getElementById("message").innerText = "📿 1 bead counted from voice!";
+          }
+        }
+      };
+
+      recognition.onerror = function (event) {
+        document.getElementById("voiceStatus").innerText = "Error: " + event.error;
+      };
+
+      recognition.onend = function () {
+        if (isListening) {
+          recognition.start();
+        } else {
+          document.getElementById("voiceStatus").innerText = "Not Listening";
+        }
+      };
+
+      recognition.start();
+    }
+
+    // ===== NEW FUNCTION: stop voice listening =====
+    function stopVoice() {
+      isListening = false;
+
+      if (recognition) {
+        recognition.stop();
+      }
+
+      document.getElementById("voiceStatus").innerText = "Not Listening";
     }
   </script>
 
