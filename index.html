@@ -126,6 +126,16 @@
       line-height: 1.6;
     }
 
+    .debug-box {
+      margin-top: 12px;
+      background-color: #eef7ff;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 13px;
+      color: #2c3e50;
+      text-align: left;
+    }
+
     button {
       padding: 12px 20px;
       margin: 8px;
@@ -196,11 +206,11 @@
 
     <div class="message" id="message"></div>
 
-    <!-- Existing buttons (same logic) -->
+    <!-- OLD buttons remain same -->
     <button class="chant-btn" onclick="increaseCount()">Chant +1</button>
     <button class="reset-btn" onclick="resetCount()">Reset All</button>
 
-    <!-- NEW: Voice section added -->
+    <!-- Voice section -->
     <div class="voice-section">
       <button class="voice-btn" onclick="startVoice()">🎤 Start Voice</button>
       <button class="stop-btn" onclick="stopVoice()">⏹ Stop Voice</button>
@@ -210,8 +220,12 @@
       </div>
 
       <div class="heard-box">
-        <strong>Last Heard:</strong>
+        <strong>Live Voice Buffer:</strong>
         <div class="heard-text" id="heardText">Nothing heard yet...</div>
+      </div>
+
+      <div class="debug-box" id="debugInfo">
+        Debug: Waiting for voice...
       </div>
 
       <div class="mantra-box">
@@ -223,18 +237,18 @@
   </div>
 
   <script>
-    // ===== EXISTING VARIABLES (same logic) =====
+    // ===== EXISTING VARIABLES (unchanged) =====
     let currentBeads = 0;
     let totalBeads = 0;
     let rounds = 0;
     const targetRounds = 16;
 
-    // ===== NEW VARIABLES (voice feature only) =====
+    // ===== NEW VOICE VARIABLES ONLY =====
     let recognition;
     let isListening = false;
-    let lastVoiceCountTime = 0;
+    let voiceBuffer = "";
 
-    // ===== EXISTING FUNCTION (same logic) =====
+    // ===== EXISTING FUNCTION (unchanged) =====
     function increaseCount() {
       if (rounds < targetRounds) {
         currentBeads++;
@@ -267,11 +281,12 @@
       }
     }
 
-    // ===== EXISTING FUNCTION (same logic) =====
+    // ===== EXISTING FUNCTION (slightly extended only for voice UI reset) =====
     function resetCount() {
       currentBeads = 0;
       totalBeads = 0;
       rounds = 0;
+      voiceBuffer = "";
 
       document.getElementById("beadCount").innerText = "0 / 108";
       document.getElementById("totalBeads").innerText = "0";
@@ -280,24 +295,110 @@
       document.getElementById("message").innerText = "";
       document.getElementById("voiceStatus").innerText = "Not Listening";
       document.getElementById("heardText").innerText = "Nothing heard yet...";
+      document.getElementById("debugInfo").innerText = "Debug: Waiting for voice...";
     }
 
-    // ===== NEW FUNCTION: checks if full maha-mantra is heard =====
-    function isFullMahaMantra(text) {
-      text = text.toLowerCase().trim();
-
-      let hareCount = (text.match(/hare/g) || []).length;
-      let krishnaCount = (text.match(/krishna/g) || []).length;
-      let ramaCount = (text.match(/rama/g) || []).length;
-
-      let hasEnoughWords = hareCount >= 4 && krishnaCount >= 4 && ramaCount >= 4;
-      let hasKrishnaPart = text.includes("hare krishna");
-      let hasRamaPart = text.includes("hare rama");
-
-      return hasEnoughWords && hasKrishnaPart && hasRamaPart;
+    // ===== NEW: normalize voice text =====
+    function normalizeText(text) {
+      return text
+        .toLowerCase()
+        .replace(/[.,!?]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
     }
 
-    // ===== NEW FUNCTION: start voice listening =====
+    // ===== NEW: count word occurrences =====
+    function countWord(text, word) {
+      return (text.match(new RegExp("\\b" + word + "\\b", "g")) || []).length;
+    }
+
+    // ===== NEW: detect how many full mantras are inside buffer =====
+    function extractMantraCountFromBuffer() {
+      let text = normalizeText(voiceBuffer);
+
+      let hareCount = countWord(text, "hare");
+      let krishnaCount = countWord(text, "krishna");
+      let ramaCount = countWord(text, "rama");
+
+      document.getElementById("debugInfo").innerText =
+        "Debug → Hare: " + hareCount +
+        " | Krishna: " + krishnaCount +
+        " | Rama: " + ramaCount;
+
+      // One full maha-mantra roughly needs:
+      // Hare x8, Krishna x4, Rama x4
+      // But browser misses words, so we use relaxed thresholds
+      let possibleMantras = Math.min(
+        Math.floor(hareCount / 6),
+        Math.floor(krishnaCount / 3),
+        Math.floor(ramaCount / 3)
+      );
+
+      return possibleMantras;
+    }
+
+    // ===== NEW: process buffer and count multiple mantras if present =====
+    function processVoiceBuffer() {
+      let mantraCount = extractMantraCountFromBuffer();
+
+      while (mantraCount > 0 && rounds < targetRounds) {
+        let oldRounds = rounds;
+        increaseCount();
+
+        if (rounds === oldRounds) {
+          document.getElementById("message").innerText = "📿 1 bead counted from voice!";
+        }
+
+        // remove one mantra approximately from buffer
+        // relaxed removal so next mantra can still be detected
+        let temp = normalizeText(voiceBuffer);
+
+        temp = temp.replace(/\bhare\b/g, (match, offset, full) => {
+          if (!window._hareRemoved) window._hareRemoved = 0;
+          if (window._hareRemoved < 6) {
+            window._hareRemoved++;
+            return "";
+          }
+          return match;
+        });
+
+        temp = temp.replace(/\bkrishna\b/g, (match, offset, full) => {
+          if (!window._krishnaRemoved) window._krishnaRemoved = 0;
+          if (window._krishnaRemoved < 3) {
+            window._krishnaRemoved++;
+            return "";
+          }
+          return match;
+        });
+
+        temp = temp.replace(/\brama\b/g, (match, offset, full) => {
+          if (!window._ramaRemoved) window._ramaRemoved = 0;
+          if (window._ramaRemoved < 3) {
+            window._ramaRemoved++;
+            return "";
+          }
+          return match;
+        });
+
+        window._hareRemoved = 0;
+        window._krishnaRemoved = 0;
+        window._ramaRemoved = 0;
+
+        voiceBuffer = temp.replace(/\s+/g, " ").trim();
+
+        document.getElementById("heardText").innerText = voiceBuffer || "Listening for next mantra...";
+
+        mantraCount = extractMantraCountFromBuffer();
+      }
+
+      // prevent buffer from becoming too long
+      let words = normalizeText(voiceBuffer).split(" ");
+      if (words.length > 60) {
+        voiceBuffer = words.slice(-30).join(" ");
+      }
+    }
+
+    // ===== NEW: start voice =====
     function startVoice() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -306,9 +407,13 @@
         return;
       }
 
+      if (isListening) {
+        return;
+      }
+
       recognition = new SpeechRecognition();
       recognition.continuous = true;
-      recognition.interimResults = false;
+      recognition.interimResults = true; // IMPORTANT for faster catching
       recognition.lang = "en-IN";
 
       recognition.onstart = function () {
@@ -317,18 +422,27 @@
       };
 
       recognition.onresult = function (event) {
-        let transcript = event.results[event.results.length - 1][0].transcript.trim();
-        document.getElementById("heardText").innerText = transcript;
+        let finalTranscript = "";
+        let interimTranscript = "";
 
-        let currentTime = Date.now();
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          let transcriptPiece = event.results[i][0].transcript;
 
-        if (isFullMahaMantra(transcript)) {
-          if (currentTime - lastVoiceCountTime > 3000) {
-            increaseCount(); // Uses your SAME old counting logic
-            lastVoiceCountTime = currentTime;
-            document.getElementById("message").innerText = "📿 1 bead counted from voice!";
+          if (event.results[i].isFinal) {
+            finalTranscript += " " + transcriptPiece;
+          } else {
+            interimTranscript += " " + transcriptPiece;
           }
         }
+
+        if (finalTranscript.trim()) {
+          voiceBuffer += " " + finalTranscript.trim();
+        }
+
+        let displayText = normalizeText(voiceBuffer + " " + interimTranscript);
+        document.getElementById("heardText").innerText = displayText || "Listening...";
+
+        processVoiceBuffer();
       };
 
       recognition.onerror = function (event) {
@@ -346,7 +460,7 @@
       recognition.start();
     }
 
-    // ===== NEW FUNCTION: stop voice listening =====
+    // ===== NEW: stop voice =====
     function stopVoice() {
       isListening = false;
 
