@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Japa Counter - 16 Rounds</title>
+  <title>Japa Counter - Auto Time Based</title>
 
   <style>
     body {
@@ -24,7 +24,7 @@
       border-radius: 20px;
       box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
       text-align: center;
-      width: 420px;
+      width: 430px;
       max-width: 100%;
     }
 
@@ -87,7 +87,7 @@
       min-height: 25px;
     }
 
-    .voice-section {
+    .timer-section {
       margin-top: 20px;
       padding: 15px;
       background-color: #fdfaf2;
@@ -95,45 +95,50 @@
       border: 1px solid #f0d9a7;
     }
 
-    .voice-status {
+    .input-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
       margin-top: 10px;
-      font-weight: bold;
-      color: #2980b9;
+      flex-wrap: wrap;
     }
 
-    .heard-box {
-      margin-top: 10px;
-      text-align: left;
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
-    .heard-text {
-      margin-top: 5px;
-      padding: 10px;
-      background-color: #f8f9fa;
-      border-radius: 8px;
-      min-height: 35px;
-      color: #444;
-      word-wrap: break-word;
-    }
-
-    .mantra-box {
-      margin-top: 15px;
-      background-color: #fafafa;
-      border-radius: 10px;
-      padding: 12px;
+    .input-group label {
       font-size: 14px;
       color: #555;
-      line-height: 1.6;
+      margin-bottom: 5px;
     }
 
-    .debug-box {
-      margin-top: 12px;
-      background-color: #eef7ff;
+    .input-group input {
+      width: 80px;
+      padding: 8px;
+      font-size: 16px;
+      text-align: center;
       border-radius: 8px;
-      padding: 10px;
-      font-size: 13px;
+      border: 1px solid #ccc;
+    }
+
+    .interval-box {
+      margin-top: 15px;
+      background-color: #eef7ff;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 15px;
       color: #2c3e50;
-      text-align: left;
+      font-weight: bold;
+    }
+
+    .status-box {
+      margin-top: 10px;
+      font-size: 16px;
+      color: #2980b9;
+      font-weight: bold;
     }
 
     button {
@@ -163,12 +168,12 @@
       background-color: #c0392b;
     }
 
-    .voice-btn {
+    .start-btn {
       background-color: #3498db;
       color: white;
     }
 
-    .voice-btn:hover {
+    .start-btn:hover {
       background-color: #2c80b4;
     }
 
@@ -206,49 +211,52 @@
 
     <div class="message" id="message"></div>
 
-    <!-- OLD buttons remain same -->
+    <!-- Existing manual buttons -->
     <button class="chant-btn" onclick="increaseCount()">Chant +1</button>
     <button class="reset-btn" onclick="resetCount()">Reset All</button>
 
-    <!-- Voice section -->
-    <div class="voice-section">
-      <button class="voice-btn" onclick="startVoice()">🎤 Start Voice</button>
-      <button class="stop-btn" onclick="stopVoice()">⏹ Stop Voice</button>
+    <!-- New Auto Timer Section -->
+    <div class="timer-section">
+      <h3 style="margin-top: 0; color: #d35400;">⏱ Auto Japa Counter</h3>
+      <p style="margin-bottom: 10px;">Set your 1 round chanting time</p>
 
-      <div class="voice-status">
-        Voice Status: <span id="voiceStatus">Not Listening</span>
+      <div class="input-row">
+        <div class="input-group">
+          <label>Minutes</label>
+          <input type="number" id="minutesInput" value="5" min="0">
+        </div>
+
+        <div class="input-group">
+          <label>Seconds</label>
+          <input type="number" id="secondsInput" value="50" min="0" max="59">
+        </div>
       </div>
 
-      <div class="heard-box">
-        <strong>Live Voice Buffer:</strong>
-        <div class="heard-text" id="heardText">Nothing heard yet...</div>
+      <div class="interval-box" id="intervalDisplay">
+        1 Bead = 3.241 seconds
       </div>
 
-      <div class="debug-box" id="debugInfo">
-        Debug: Waiting for voice...
+      <div class="status-box" id="autoStatus">
+        Auto Counter: Stopped
       </div>
 
-      <div class="mantra-box">
-        <strong>Maha-mantra:</strong><br>
-        Hare Krishna Hare Krishna Krishna Krishna Hare Hare<br>
-        Hare Rama Hare Rama Rama Rama Hare Hare
-      </div>
+      <button class="start-btn" onclick="startAutoCount()">▶️ Start Auto Count</button>
+      <button class="stop-btn" onclick="stopAutoCount()">⏹ Stop Auto Count</button>
     </div>
   </div>
 
   <script>
-    // ===== EXISTING VARIABLES (unchanged) =====
+    // ===== EXISTING VARIABLES =====
     let currentBeads = 0;
     let totalBeads = 0;
     let rounds = 0;
     const targetRounds = 16;
 
-    // ===== NEW VOICE VARIABLES ONLY =====
-    let recognition;
-    let isListening = false;
-    let voiceBuffer = "";
+    // ===== NEW AUTO COUNTER VARIABLES =====
+    let autoCounterInterval = null;
+    let beadIntervalMs = 3240.74; // default for 5 min 50 sec
 
-    // ===== EXISTING FUNCTION (unchanged) =====
+    // ===== EXISTING FUNCTION (same main logic) =====
     function increaseCount() {
       if (rounds < targetRounds) {
         currentBeads++;
@@ -276,201 +284,84 @@
           } else {
             document.getElementById("targetStatus").innerText = "🎉 16 Rounds Completed Today! Haribol!";
             document.getElementById("message").innerText = "🌸 All 16 rounds completed! Wonderful seva!";
+            stopAutoCount(); // auto stop after 16 rounds
           }
         }
       }
     }
 
-    // ===== EXISTING FUNCTION (slightly extended only for voice UI reset) =====
+    // ===== EXISTING FUNCTION (extended to stop auto counter too) =====
     function resetCount() {
       currentBeads = 0;
       totalBeads = 0;
       rounds = 0;
-      voiceBuffer = "";
+
+      stopAutoCount();
 
       document.getElementById("beadCount").innerText = "0 / 108";
       document.getElementById("totalBeads").innerText = "0";
       document.getElementById("roundCount").innerText = "0";
       document.getElementById("targetStatus").innerText = "Target: 16 Rounds Remaining";
       document.getElementById("message").innerText = "";
-      document.getElementById("voiceStatus").innerText = "Not Listening";
-      document.getElementById("heardText").innerText = "Nothing heard yet...";
-      document.getElementById("debugInfo").innerText = "Debug: Waiting for voice...";
     }
 
-    // ===== NEW: normalize voice text =====
-    function normalizeText(text) {
-      return text
-        .toLowerCase()
-        .replace(/[.,!?]/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
+    // ===== NEW FUNCTION: calculate bead interval =====
+    function calculateBeadInterval() {
+      let minutes = parseInt(document.getElementById("minutesInput").value) || 0;
+      let seconds = parseInt(document.getElementById("secondsInput").value) || 0;
+
+      let totalSeconds = (minutes * 60) + seconds;
+
+      if (totalSeconds <= 0) {
+        totalSeconds = 350; // fallback to 5m 50s
+        document.getElementById("minutesInput").value = 5;
+        document.getElementById("secondsInput").value = 50;
+      }
+
+      let secondsPerBead = totalSeconds / 108;
+      beadIntervalMs = secondsPerBead * 1000;
+
+      document.getElementById("intervalDisplay").innerText =
+        "1 Bead = " + secondsPerBead.toFixed(3) + " seconds";
     }
 
-    // ===== NEW: count word occurrences =====
-    function countWord(text, word) {
-      return (text.match(new RegExp("\\b" + word + "\\b", "g")) || []).length;
-    }
+    // ===== NEW FUNCTION: start auto counting =====
+    function startAutoCount() {
+      if (autoCounterInterval !== null) {
+        return; // already running
+      }
 
-    // ===== NEW: detect how many full mantras are inside buffer =====
-    function extractMantraCountFromBuffer() {
-      let text = normalizeText(voiceBuffer);
+      if (rounds >= targetRounds) {
+        document.getElementById("message").innerText = "🌸 All 16 rounds already completed today!";
+        return;
+      }
 
-      let hareCount = countWord(text, "hare");
-      let krishnaCount = countWord(text, "krishna");
-      let ramaCount = countWord(text, "rama");
+      calculateBeadInterval();
 
-      document.getElementById("debugInfo").innerText =
-        "Debug → Hare: " + hareCount +
-        " | Krishna: " + krishnaCount +
-        " | Rama: " + ramaCount;
+      document.getElementById("autoStatus").innerText = "Auto Counter: Running ▶️";
 
-      // One full maha-mantra roughly needs:
-      // Hare x8, Krishna x4, Rama x4
-      // But browser misses words, so we use relaxed thresholds
-      let possibleMantras = Math.min(
-        Math.floor(hareCount / 6),
-        Math.floor(krishnaCount / 3),
-        Math.floor(ramaCount / 3)
-      );
-
-      return possibleMantras;
-    }
-
-    // ===== NEW: process buffer and count multiple mantras if present =====
-    function processVoiceBuffer() {
-      let mantraCount = extractMantraCountFromBuffer();
-
-      while (mantraCount > 0 && rounds < targetRounds) {
-        let oldRounds = rounds;
+      autoCounterInterval = setInterval(function () {
         increaseCount();
-
-        if (rounds === oldRounds) {
-          document.getElementById("message").innerText = "📿 1 bead counted from voice!";
-        }
-
-        // remove one mantra approximately from buffer
-        // relaxed removal so next mantra can still be detected
-        let temp = normalizeText(voiceBuffer);
-
-        temp = temp.replace(/\bhare\b/g, (match, offset, full) => {
-          if (!window._hareRemoved) window._hareRemoved = 0;
-          if (window._hareRemoved < 6) {
-            window._hareRemoved++;
-            return "";
-          }
-          return match;
-        });
-
-        temp = temp.replace(/\bkrishna\b/g, (match, offset, full) => {
-          if (!window._krishnaRemoved) window._krishnaRemoved = 0;
-          if (window._krishnaRemoved < 3) {
-            window._krishnaRemoved++;
-            return "";
-          }
-          return match;
-        });
-
-        temp = temp.replace(/\brama\b/g, (match, offset, full) => {
-          if (!window._ramaRemoved) window._ramaRemoved = 0;
-          if (window._ramaRemoved < 3) {
-            window._ramaRemoved++;
-            return "";
-          }
-          return match;
-        });
-
-        window._hareRemoved = 0;
-        window._krishnaRemoved = 0;
-        window._ramaRemoved = 0;
-
-        voiceBuffer = temp.replace(/\s+/g, " ").trim();
-
-        document.getElementById("heardText").innerText = voiceBuffer || "Listening for next mantra...";
-
-        mantraCount = extractMantraCountFromBuffer();
-      }
-
-      // prevent buffer from becoming too long
-      let words = normalizeText(voiceBuffer).split(" ");
-      if (words.length > 60) {
-        voiceBuffer = words.slice(-30).join(" ");
-      }
+      }, beadIntervalMs);
     }
 
-    // ===== NEW: start voice =====
-    function startVoice() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-      if (!SpeechRecognition) {
-        alert("Speech recognition is not supported in this browser. Please use Chrome.");
-        return;
+    // ===== NEW FUNCTION: stop auto counting =====
+    function stopAutoCount() {
+      if (autoCounterInterval !== null) {
+        clearInterval(autoCounterInterval);
+        autoCounterInterval = null;
       }
 
-      if (isListening) {
-        return;
-      }
-
-      recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true; // IMPORTANT for faster catching
-      recognition.lang = "en-IN";
-
-      recognition.onstart = function () {
-        isListening = true;
-        document.getElementById("voiceStatus").innerText = "Listening... 🎤";
-      };
-
-      recognition.onresult = function (event) {
-        let finalTranscript = "";
-        let interimTranscript = "";
-
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          let transcriptPiece = event.results[i][0].transcript;
-
-          if (event.results[i].isFinal) {
-            finalTranscript += " " + transcriptPiece;
-          } else {
-            interimTranscript += " " + transcriptPiece;
-          }
-        }
-
-        if (finalTranscript.trim()) {
-          voiceBuffer += " " + finalTranscript.trim();
-        }
-
-        let displayText = normalizeText(voiceBuffer + " " + interimTranscript);
-        document.getElementById("heardText").innerText = displayText || "Listening...";
-
-        processVoiceBuffer();
-      };
-
-      recognition.onerror = function (event) {
-        document.getElementById("voiceStatus").innerText = "Error: " + event.error;
-      };
-
-      recognition.onend = function () {
-        if (isListening) {
-          recognition.start();
-        } else {
-          document.getElementById("voiceStatus").innerText = "Not Listening";
-        }
-      };
-
-      recognition.start();
+      document.getElementById("autoStatus").innerText = "Auto Counter: Stopped";
     }
 
-    // ===== NEW: stop voice =====
-    function stopVoice() {
-      isListening = false;
+    // ===== NEW: auto recalculate when user changes time =====
+    document.getElementById("minutesInput").addEventListener("input", calculateBeadInterval);
+    document.getElementById("secondsInput").addEventListener("input", calculateBeadInterval);
 
-      if (recognition) {
-        recognition.stop();
-      }
-
-      document.getElementById("voiceStatus").innerText = "Not Listening";
-    }
+    // Initial calculation on page load
+    calculateBeadInterval();
   </script>
 
 </body>
-</html>
+          </html>
