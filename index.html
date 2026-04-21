@@ -18,6 +18,25 @@
       box-sizing: border-box;
     }
 
+    .page-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      width: 100%;
+    }
+
+    .mantra-side {
+      width: 220px;
+      text-align: center;
+      color: #d35400;
+      font-weight: bold;
+      font-size: 28px;
+      line-height: 1.6;
+      white-space: pre-line;
+      user-select: none;
+    }
+
     .container {
       background-color: white;
       padding: 30px;
@@ -185,63 +204,91 @@
     .stop-btn:hover {
       background-color: #d68910;
     }
+
+    @media (max-width: 1100px) {
+      .page-wrapper {
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .mantra-side {
+        width: auto;
+        font-size: 22px;
+      }
+    }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <h1>📿 Japa Yajna</h1>
-    <p>1 Round = 108 Beads | Daily Goal = 16 Rounds</p>
+  <div class="page-wrapper">
+    <div class="mantra-side">
+      HARE KRISHNA
+      <br>HARE KRISHNA
+      <br>KRISHNA KRISHNA
+      <br>HARE HARE
+    </div>
 
-    <div class="main-count" id="beadCount">0 / 108</div>
+    <div class="container">
+      <h1>📿 Japa Yajna</h1>
+      <p>1 Round = 108 Beads | Daily Goal = 16 Rounds</p>
 
-    <div class="sub-info">
-      <div class="info-box">
-        <h3>Total Beads</h3>
-        <div class="value" id="totalBeads">0</div>
+      <div class="main-count" id="beadCount">0 / 108</div>
+
+      <div class="sub-info">
+        <div class="info-box">
+          <h3>Total Beads</h3>
+          <div class="value" id="totalBeads">0</div>
+        </div>
+
+        <div class="info-box">
+          <h3>Rounds</h3>
+          <div class="value" id="roundCount">0</div>
+        </div>
       </div>
 
-      <div class="info-box">
-        <h3>Rounds</h3>
-        <div class="value" id="roundCount">0</div>
+      <div class="target" id="targetStatus">Target: 16 Rounds Remaining</div>
+
+      <div class="message" id="message"></div>
+
+      <!-- Existing manual buttons -->
+      <button class="chant-btn" onclick="increaseCount()">Chant +1</button>
+      <button class="reset-btn" onclick="resetCount()">Reset All</button>
+
+      <!-- New Auto Timer Section -->
+      <div class="timer-section">
+        <h3 style="margin-top: 0; color: #d35400;">⏱ Auto Japa Counter</h3>
+        <p style="margin-bottom: 10px;">Set your 1 round chanting time</p>
+
+        <div class="input-row">
+          <div class="input-group">
+            <label>Minutes</label>
+            <input type="number" id="minutesInput" value="5" min="0">
+          </div>
+
+          <div class="input-group">
+            <label>Seconds</label>
+            <input type="number" id="secondsInput" value="50" min="0" max="59">
+          </div>
+        </div>
+
+        <div class="interval-box" id="intervalDisplay">
+          1 Bead = 3.241 seconds
+        </div>
+
+        <div class="status-box" id="autoStatus">
+          Auto Counter: Stopped
+        </div>
+
+        <button class="start-btn" onclick="startAutoCount()">▶️ Start Auto Count</button>
+        <button class="stop-btn" onclick="stopAutoCount()">⏹ Stop Auto Count</button>
       </div>
     </div>
 
-    <div class="target" id="targetStatus">Target: 16 Rounds Remaining</div>
-
-    <div class="message" id="message"></div>
-
-    <!-- Existing manual buttons -->
-    <button class="chant-btn" onclick="increaseCount()">Chant +1</button>
-    <button class="reset-btn" onclick="resetCount()">Reset All</button>
-
-    <!-- New Auto Timer Section -->
-    <div class="timer-section">
-      <h3 style="margin-top: 0; color: #d35400;">⏱ Auto Japa Counter</h3>
-      <p style="margin-bottom: 10px;">Set your 1 round chanting time</p>
-
-      <div class="input-row">
-        <div class="input-group">
-          <label>Minutes</label>
-          <input type="number" id="minutesInput" value="5" min="0">
-        </div>
-
-        <div class="input-group">
-          <label>Seconds</label>
-          <input type="number" id="secondsInput" value="50" min="0" max="59">
-        </div>
-      </div>
-
-      <div class="interval-box" id="intervalDisplay">
-        1 Bead = 3.241 seconds
-      </div>
-
-      <div class="status-box" id="autoStatus">
-        Auto Counter: Stopped
-      </div>
-
-      <button class="start-btn" onclick="startAutoCount()">▶️ Start Auto Count</button>
-      <button class="stop-btn" onclick="stopAutoCount()">⏹ Stop Auto Count</button>
+    <div class="mantra-side">
+      HARE RAMA
+      <br>HARE RAMA
+      <br>RAMA RAMA
+      <br>HARE HARE
     </div>
   </div>
 
@@ -364,4 +411,4 @@
   </script>
 
 </body>
-          </html>
+</html>
