@@ -1,16 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>
-    (function(){
-      var _l=console.log,_w=console.warn,_e=console.error;
-      function _s(t,a){window.parent.postMessage({type:'log',lt:t,msg:a.map(x=>x===null?'null':x===undefined?'undefined':typeof x==='object'?JSON.stringify(x):String(x)).join(' ')},'*');}
-      console.log=function(){_l.apply(this,arguments);_s('log',[].slice.call(arguments));};
-      console.warn=function(){_w.apply(this,arguments);_s('warn',[].slice.call(arguments));};
-      console.error=function(){_e.apply(this,arguments);_s('error',[].slice.call(arguments));};
-      window.onerror=function(m,u,l){_s('error',[m+' (line '+l+')']);};
-    })();
-  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Japa Yajna - Auto Time Based</title>
@@ -250,13 +240,11 @@
       }
     }
   </style>
-
-  
 </head>
 <body>
 
   <div class="page-wrapper">
-    <div class="mantra-side" style="position: relative; left: 7px; top: 2px;">
+    <div class="mantra-side">
       Jaya Śrī-Kṛṣṇa-Caitanya<br>
       Prabhu Nityānanda<br>
       Śrī-Advaita Gadādhara<br>
@@ -264,10 +252,10 @@
     </div>
 
     <div class="container">
-      <h1 style="position: relative; left: 3px; top: -21px;">📿 Japa Yajna</h1>
+      <h1>📿 Japa Yajna</h1>
       <p>1 Round = 108 Beads | Daily Goal = 16 Rounds</p>
 
-      <div class="main-count" id="beadCount" style="position: relative; width: 432px; height: 69px; left: 3px; top: 6px;">0 / 108</div>
+      <div class="main-count" id="beadCount">0 / 108</div>
 
       <div class="sub-info">
         <div class="info-box">
@@ -286,8 +274,8 @@
       <div class="message" id="message"></div>
 
       <!-- Existing manual buttons -->
-      <button class="chant-btn" onclick="increaseCount()" style="position: relative; left: 47px; top: -30px; width: 215px; height: 80px;">Chant +1</button>
-      <button class="reset-btn" onclick="resetCount()" style="position: relative; left: 57px; top: -31px;">Reset All</button>
+      <button class="chant-btn" onclick="increaseCount()">Chant +1</button>
+      <button class="reset-btn" onclick="resetCount()">Reset All</button>
 
       <!-- New Auto Timer Section -->
       <div class="timer-section">
@@ -306,7 +294,9 @@
           </div>
         </div>
 
-        <div class="interval-box" id="intervalDisplay">1 Bead = 3.241 seconds</div>
+        <div class="interval-box" id="intervalDisplay">
+          1 Bead = 3.241 seconds
+        </div>
 
         <div class="status-box" id="autoStatus">
           Auto Counter: Stopped
@@ -442,9 +432,6 @@
     // Initial calculation on page load
     calculateBeadInterval();
   </script>
-
-
-  
 
 </body>
 </html>
