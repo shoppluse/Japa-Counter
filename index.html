@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+    (function(){
+      var _l=console.log,_w=console.warn,_e=console.error;
+      function _s(t,a){window.parent.postMessage({type:'log',lt:t,msg:a.map(x=>x===null?'null':x===undefined?'undefined':typeof x==='object'?JSON.stringify(x):String(x)).join(' ')},'*');}
+      console.log=function(){_l.apply(this,arguments);_s('log',[].slice.call(arguments));};
+      console.warn=function(){_w.apply(this,arguments);_s('warn',[].slice.call(arguments));};
+      console.error=function(){_e.apply(this,arguments);_s('error',[].slice.call(arguments));};
+      window.onerror=function(m,u,l){_s('error',[m+' (line '+l+')']);};
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Japa Yajna - Auto Time Based</title>
@@ -240,11 +250,13 @@
       }
     }
   </style>
+
+  
 </head>
 <body>
 
   <div class="page-wrapper">
-    <div class="mantra-side">
+    <div class="mantra-side" style="position: relative; left: 980px; top: 108px;">
       Jaya Śrī-Kṛṣṇa-Caitanya<br>
       Prabhu Nityānanda<br>
       Śrī-Advaita Gadādhara<br>
@@ -294,9 +306,7 @@
           </div>
         </div>
 
-        <div class="interval-box" id="intervalDisplay">
-          1 Bead = 3.241 seconds
-        </div>
+        <div class="interval-box" id="intervalDisplay">1 Bead = 3.241 seconds</div>
 
         <div class="status-box" id="autoStatus">
           Auto Counter: Stopped
@@ -307,7 +317,7 @@
       </div>
     </div>
 
-    <div class="mantra-side">
+    <div class="mantra-side" style="position: relative; left: 17px; top: -242px;">
       Hare Krishna, Hare Krishna,<br>
       Krishna Krishna, Hare Hare<br>
       Hare Rama, Hare Rama,<br>
@@ -432,6 +442,9 @@
     // Initial calculation on page load
     calculateBeadInterval();
   </script>
+
+
+  
 
 </body>
 </html>
